@@ -5,7 +5,7 @@
 - **Môn Học:** Nhập môn phân tích dữ liệu và học sâu
 - **Giảng viên:** Nguyễn Thái Anh
 
-## Lab 05
+## Lab 04
 
 ## Công nghệ sử dụng
 - **Thư viện**:
