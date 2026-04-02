@@ -9,8 +9,8 @@
 
 ## 1. Công Nghệ Được Sử Dụng
 - **Python** 
-- **NLTK (Natural Language Toolkit):** T
-- **BeautifulSoup (bs4):** C
+- **NLTK (Natural Language Toolkit):** 
+- **BeautifulSoup (bs4):** 
 - **Urllib:** 
 - **Bộ dữ liệu áp dụng:** 
 
