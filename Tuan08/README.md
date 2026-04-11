@@ -116,8 +116,22 @@ Sau quá trình xử lý, bản báo cáo logging lấy trực tiếp từ `PLR.
 
 Do sự biến thiên qua từng Epochs, quá trình học sâu đã phát hiện đỉnh tổng quát hóa trơn tru tại giai đoạn **Epoch 70**. Đây cũng là khoảng thời gian ghi lại trạng thái tốt nhất:
 - Mức tiêu hao kiểm định (Validation Loss): **0.6565**
-- Độ chính xác tập kiểm định đỉnh cao (Validation Accuracy): **90.77%**
+- Độ chính xác tập kiểm định đỉnh cao (Validation Accuracy): **91.48%**
 
 **Kết quả đánh giá trên tập Kiểm tra (Test):**
 Sau khi tải lại model mang đặc điểm tốt nhất (file save lưu được từ Epoch 70), quá trình đưa hình ảnh hoàn toàn trong tập test qua thuật toán để mang đi tiên đoán (inference) mang lại độ chính xác đáng kỳ vọng. Dựa trên 2.246 hình được chấm điểm:
 * Độ chính xác trên tập kiểm tra độc lập (Test Accuracy): **92.88%**
+
+## 4. Giao Diện Web Ứng Dụng (Flask WebApp)
+Để thực tiễn hoá dự án, một ứng dụng nền tảng Web được xây dựng qua thư viện **Flask**. Hệ thống trực tiếp tải bộ quy mô `GARBAGE_CLASSIFICATION_cnn_model.pth` để trực quan hoá quá trình tiếp nhận Ảnh Đầu Vào (Input) và trả về Class Dự Đoán (Output).
+- Giao diện được thiết kế hiện đại
+- Hoạt động tại: `http://localhost:5008`
+- API Inference: Trả ngược kết quả JSON từ chuỗi CNN bằng hàm Softmax/Max-logit.
+### Ảnh giao diện hoạt động:
+Demo Giao Diện Phân loại rác thải
+![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
+![alt text](image-4.png)
+![alt text](image-5.png)
