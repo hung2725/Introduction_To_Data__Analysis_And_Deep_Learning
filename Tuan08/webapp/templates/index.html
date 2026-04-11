@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>♻️ Phân Loại Rác Thải - CNN Deep Learning</title>
+    <meta name="description"
+        content="Ứng dụng phân loại rác thải thông minh sử dụng mô hình CNN đạt độ chính xác 92.88% trên 6 nhãn rác thải.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10B981;
+            --primary-dark: #059669;
+            --primary-light: #34D399;
+            --accent: #F59E0B;
+            --accent2: #8B5CF6;
+            --bg: #080f0a;
+            --glass: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #f0fdf4;
+            --muted: #6b7280;
+            --card-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 10% 10%, hsla(145, 70%, 12%, 0.8) 0, transparent 55%),
+                radial-gradient(ellipse at 90% 80%, hsla(260, 50%, 10%, 0.6) 0, transparent 50%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 16px 60px;
+        }
+
+        /* HEADER */
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 50px;
+            padding: 5px 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 5vw, 2.6rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #10B981 0%, #34D399 50%, #6EE7B7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        /* STATS ROW */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .stat-chip {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 18px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-chip .val {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary-light);
+        }
+
+        .stat-chip .lbl {
+            font-size: 0.7rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 2px;
+        }
+
+        /* MAIN CARD */
+        .card {
+            width: 100%;
+            max-width: 560px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 36px;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* UPLOAD AREA */
+        .upload-area {
+            border: 2px dashed rgba(16, 185, 129, 0.4);
+            border-radius: 20px;
+            padding: 48px 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(16, 185, 129, 0.02);
+            position: relative;
+            text-align: center;
+        }
+
+        .upload-area:hover,
+        .upload-area.drag-over {
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.07);
+            transform: translateY(-2px);
+        }
+
+        .upload-area input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-icon {
+            width: 52px;
+            height: 52px;
+            background: rgba(16, 185, 129, 0.12);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .upload-area p {
+            font-weight: 500;
+            color: #d1fae5;
+            font-size: 0.95rem;
+        }
+
+        .upload-area span {
+            font-size: 0.8rem;
+            color: var(--muted);
+            display: block;
+            margin-top: 4px;
+        }
+
+        /* PREVIEW */
+        .preview-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .preview-img {
+            width: 220px;
+            height: 220px;
+            border-radius: 18px;
+            object-fit: cover;
+            border: 3px solid rgba(16, 185, 129, 0.25);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        /* BUTTONS */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 13px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-predict {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-predict:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-predict:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-change {
+            background: rgba(255, 255, 255, 0.07);
+            color: #d1d5db;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-change:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        /* LOADING */
+        .loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 0;
+            color: var(--primary-light);
+            font-size: 0.9rem;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(16, 185, 129, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* RESULT CARD */
+        .result-card {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 24px;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-main {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 18px;
+            padding: 20px 22px;
+        }
+
+        .result-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary-light);
+            margin-bottom: 6px;
+        }
+
+        .result-class {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.3;
+        }
+
+        /* CONFIDENCE BAR */
+        .confidence-block {
+            margin-top: 14px;
+        }
+
+        .conf-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .conf-header .conf-pct {
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .conf-bar-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .conf-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
+            border-radius: 50px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        /* TOP-3 */
+        .top3-section {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px 18px;
+        }
+
+        .top3-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .top3-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+        }
+
+        .top3-item:not(:last-child) {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            margin-bottom: 6px;
+        }
+
+        .top3-rank {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .rank-1 {
+            background: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+        }
+
+        .rank-2 {
+            background: rgba(156, 163, 175, 0.15);
+            color: #9CA3AF;
+        }
+
+        .rank-3 {
+            background: rgba(180, 140, 80, 0.1);
+            color: #92400e;
+        }
+
+        .top3-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top3-name {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #d1d5db;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top3-bar-track {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 50px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .top3-bar-fill {
+            height: 100%;
+            border-radius: 50px;
+            transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        .fill-1 {
+            background: linear-gradient(90deg, #059669, #34D399);
+        }
+
+        .fill-2 {
+            background: linear-gradient(90deg, #4B5563, #9CA3AF);
+        }
+
+        .fill-3 {
+            background: linear-gradient(90deg, #78350F, #D97706);
+        }
+
+        .top3-pct {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        /* CLASSES LEGEND */
+        .legend {
+            margin-top: 32px;
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .legend-title {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .legend-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: #d1d5db;
+            transition: all 0.2s;
+        }
+
+        .legend-item .icon {
+            font-size: 1.3rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .legend-item:hover {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.06);
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 24px 20px;
+            }
+
+            .legend-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="badge">♻️ Deep Learning · CNN · 6 Classes</div>
+        <h1>Phân Loại Rác Thải AI</h1>
+        <p class="subtitle">Mô hình CNN 5-lớp đạt độ chính xác <strong style="color:#34D399">92.88%</strong> — Phân loại
+            6 nhóm rác thải</p>
+    </header>
+
+    <!-- STATS CHIPS -->
+    <div class="stats-row">
+        <div class="stat-chip">
+            <div class="val">92.88%</div>
+            <div class="lbl">Test Accuracy</div>
+        </div>
+        <div class="stat-chip">
+            <div class="val">23.008</div>
+            <div class="lbl">Ảnh huấn luyện</div>
+        </div>
+        <div class="stat-chip">
+            <div class="val">80</div>
+            <div class="lbl">Epochs</div>
+        </div>
+        <div class="stat-chip">
+            <div class="val">6</div>
+            <div class="lbl">Nhóm rác</div>
+        </div>
+    </div>
+
+    <!-- MAIN CARD -->
+    <div class="card">
+
+        <!-- Upload -->
+        <div class="upload-area" id="drop-area">
+            <input type="file" id="fileInput" accept="image/*">
+            <div class="upload-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+            </div>
+            <p>Nhấp để chọn hoặc kéo thả ảnh vào đây</p>
+            <span>Hỗ trợ JPG, PNG, WEBP · Tối đa 10MB</span>
+        </div>
+
+        <!-- Preview -->
+        <div class="preview-container" id="preview-container">
+            <img id="preview" class="preview-img" src="" alt="Preview ảnh đã chọn">
+            <div class="button-group">
+                <button class="btn btn-change" onclick="triggerInput()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                        <path d="M3 3v5h5" />
+                    </svg>
+                    Chọn ảnh khác
+                </button>
+                <button class="btn btn-predict" id="predictBtn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    Phân loại ngay
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span>Đang phân tích ảnh...</span>
+        </div>
+
+        <!-- Result -->
+        <div class="result-card" id="resultCard">
+
+            <div class="result-main">
+                <div class="result-label">🔍 Kết quả dự đoán</div>
+                <div class="result-class" id="resultText"></div>
+
+                <div class="confidence-block">
+                    <div class="conf-header">
+                        <span>Độ tự tin</span>
+                        <span class="conf-pct" id="confPct">—</span>
+                    </div>
+                    <div class="conf-bar-track">
+                        <div class="conf-bar-fill" id="confBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top3-section" id="top3Section">
+                <div class="top3-title">Top 3 dự đoán</div>
+                <div id="top3List"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend">
+        <div class="legend-title">Các nhóm rác được hỗ trợ</div>
+        <div class="legend-grid">
+            <div class="legend-item"><span class="icon">🌿</span>Sinh Học<br>Phân Huỷ</div>
+            <div class="legend-item"><span class="icon">📦</span>Bìa<br>Các-tông</div>
+            <div class="legend-item"><span class="icon">🍾</span>Thuỷ<br>Tinh</div>
+            <div class="legend-item"><span class="icon">🔩</span>Kim<br>Loại</div>
+            <div class="legend-item"><span class="icon">📄</span>Giấy</div>
+            <div class="legend-item"><span class="icon">🧴</span>Nhựa</div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('drop-area');
+        const previewCont = document.getElementById('preview-container');
+        const previewImg = document.getElementById('preview');
+        const resultCard = document.getElementById('resultCard');
+        const resultText = document.getElementById('resultText');
+        const confPct = document.getElementById('confPct');
+        const confBar = document.getElementById('confBar');
+        const top3List = document.getElementById('top3List');
+        const loading = document.getElementById('loading');
+        const predictBtn = document.getElementById('predictBtn');
+
+        function triggerInput() { fileInput.click(); }
+
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    previewImg.src = e.target.result;
+                    dropArea.style.display = 'none';
+                    previewCont.style.display = 'flex';
+                    resultCard.style.display = 'none';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Drag & drop support
+        ['dragenter', 'dragover'].forEach(evt => dropArea.addEventListener(evt, e => {
+            e.preventDefault(); dropArea.classList.add('drag-over');
+        }));
+        ['dragleave', 'drop'].forEach(evt => dropArea.addEventListener(evt, e => {
+            e.preventDefault(); dropArea.classList.remove('drag-over');
+        }));
+        dropArea.addEventListener('drop', e => {
+            const files = e.dataTransfer.files;
+            if (files.length) { fileInput.files = files; fileInput.dispatchEvent(new Event('change')); }
+        });
+
+        predictBtn.addEventListener('click', async () => {
+            if (!fileInput.files[0]) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            loading.style.display = 'flex';
+            resultCard.style.display = 'none';
+            predictBtn.disabled = true;
+
+            try {
+                const response = await fetch('/predict', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultText.innerText = data.prediction;
+                    const pct = data.confidence ?? 0;
+                    confPct.innerText = pct.toFixed(1) + '%';
+
+                    // Animate confidence bar (defer to let display:flex kick in)
+                    setTimeout(() => { confBar.style.width = pct + '%'; }, 50);
+
+                    // Top-3
+                    top3List.innerHTML = '';
+                    const fillClasses = ['fill-1', 'fill-2', 'fill-3'];
+                    const rankClasses = ['rank-1', 'rank-2', 'rank-3'];
+                    (data.top3 || []).forEach((item, i) => {
+                        const div = document.createElement('div');
+                        div.className = 'top3-item';
+                        div.innerHTML = `
+                            <div class="top3-rank ${rankClasses[i]}">${i + 1}</div>
+                            <div class="top3-info">
+                                <div class="top3-name">${item.class}</div>
+                                <div class="top3-bar-track">
+                                    <div class="top3-bar-fill ${fillClasses[i]}" data-w="${item.confidence}"></div>
+                                </div>
+                            </div>
+                            <div class="top3-pct">${item.confidence.toFixed(1)}%</div>
+                        `;
+                        top3List.appendChild(div);
+                    });
+                    // Animate top3 bars
+                    setTimeout(() => {
+                        document.querySelectorAll('.top3-bar-fill').forEach(el => {
+                            el.style.width = el.dataset.w + '%';
+                        });
+                    }, 80);
+
+                    resultCard.style.display = 'flex';
+                } else {
+                    alert('Lỗi: ' + (data.error || 'Không xác định'));
+                }
+            } catch (err) {
+                alert('Không thể kết nối đến Server.');
+            } finally {
+                loading.style.display = 'none';
+                predictBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
