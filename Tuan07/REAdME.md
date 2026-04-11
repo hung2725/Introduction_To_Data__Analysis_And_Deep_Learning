@@ -25,3 +25,19 @@
 
 ### Kết quả
 > **Độ chính xác cuối cùng trên tập test: 90.11%**
+
+## Giao Diện Web Ứng Dụng (Flask WebApp)
+Ứng dụng web được xây dựng giúp người dùng dễ dàng trải nghiệm và kiểm tra mô hình AI đã huấn luyện mà không cần viết code.
+
+### Điểm nổi bật:
+- **Sử dụng trực quan**: Chỉ cần truy cập `http://localhost:5007`, tải ảnh lên (hoặc kéo thả) là hệ thống sẽ tự động dự đoán đây là Chó hay Mèo.
+- **Chống lỗi sập trang (Anti-Crash)**: Ngay cả khi bạn chưa có file mô hình (`cat_and_dog_model.pth`), web vẫn sẽ hoạt động bình thường ở chế độ giả định thay vì báo lỗi.
+- **Tự động xử lý**: Mọi thao tác xử lý ảnh khó nhằn đều được hệ thống tự động làm ngầm trước khi đưa vào mô hình AI.
+- **Thiết kế**: Giao diện mang đậm phong cách Dark-mode cực kỳ bắt mắt, thân thiện với người dùng.
+
+## Demo Giao Diện Phân Loại Chó Mèo
+
+![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
